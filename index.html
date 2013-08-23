@@ -2,21 +2,24 @@
 <head>
   <meta charset="utf-8">
   <title>X Bar Tests</title>
-  <script src="acorn/acorn.js"></script>
-  <script src="acorn/util/walk.js"></script>
+  <script src="uglifyjs.js"></script>
   <script src="xbar.js"></script>
 </head>
 
 <script>
-  function doParse() {
-    desugar(document.getElementById("input").value);
-  }
+function doParse() {
+  var p = UglifyJS.parse(document.getElementById("input").value).print_to_string();
+  window.console.log(p);
+  window.console.log(eval(p));
+}
 </script>
 
 <body>
 
 <textarea id="input" rows="4" cols="50">
-[1, 2, 3].(each add(2), except(2))
+[1, 2, 3].(each add(2), except(2));
+
+"abc".(bold());
 </textarea>
 
 <button onclick="doParse()">Parse</button>

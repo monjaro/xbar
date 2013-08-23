@@ -14,7 +14,7 @@ function rangeFromList(list) {
         return new Range(list[0].start, list[list.length - 1].end);
     }
 };
-        
+
 function desugar(text) {
     var opts = {locations: true};
     var parsed = acorn.parse(text, opts);
@@ -109,15 +109,14 @@ function except(n) {
 
 function butNot(n) {
     return function(func) {
-        return function() {
-            var oldFunc = arguments[0];
-            return func.apply(this, [function(x) {
+        return function(oldFunc) {
+            return func.call(this, function(x) {
                 if (x == n) {
                     return x;
                 } else {
                     return oldFunc(x);
                 }
-            }]);
+            });
         };
     };
 };

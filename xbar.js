@@ -109,12 +109,12 @@ function except(n) {
 
 function butNot(n) {
     return function(func) {
-        return function(oldFunc) {
+        return function(f) {
             return func.call(this, function(x) {
                 if (x == n) {
                     return x;
                 } else {
-                    return oldFunc(x);
+                    return f(x);
                 }
             });
         };

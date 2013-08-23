@@ -1,5 +1,5 @@
 function xbar(obj, spec, head_str, head_obj, complements, adjuncts) {
-    var head = (obj[head_str] != undefined) ? head_str : head_obj;
+    var head = (head_str != undefined && obj[head_str] != undefined) ? head_str : head_obj;
     var specd = spec ? spec(head, complements): {head:head,complements:complements};
     var func = obj[specd.head];
     for (var i = 0; i < adjuncts.length; i++) {

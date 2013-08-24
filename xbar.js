@@ -11,29 +11,34 @@ function xbar(obj, spec, spec_args, head, complements, adjuncts, adjunct_args) {
     }
 
     var specd = spec ? spec(head, complements): {head:head,complements:complements};
-    var func = obj[specd.head];
+    var field = obj[specd.head];
 
     for (var i = 0; i < adjuncts.length; i++) {
-        var oldFunc = func;
+        var oldField = field;
         var adj;
         if (is_string(adjuncts[i])) {
-            adj = oldFunc[adjuncts[i]];
+            adj = oldField[adjuncts[i]];
 
             if (adjunct_args[i]) {
-                adj = adj.apply(oldFunc, adjunct_args[i]);
+                adj = adj.apply(oldField, adjunct_args[i]);
             }
         } else {
             adj = adjuncts[i];
         }
-        func = adj(func);
+        field = adj(field);
 
-        for (var key in oldFunc) {
-            if (!(key in func)) {
-                func[key] = oldFunc[key];
+        for (var key in oldField) {
+            if (!(key in field)) {
+                field[key] = oldField[key];
             }
         }
     }
-    return func.apply(obj, specd.complements);
+
+    if (specd.complements) {
+        return field.apply(obj, specd.complements);
+    } else {
+        return field;
+    }
 };
 
 function add(a, b) {
@@ -69,6 +74,16 @@ Array.prototype.each = function(head, complements) {
             return head.apply(null, [x].concat(complements));
         }]
     };
+};
+
+Array.prototype.max = function() {
+  return Math.max.apply(null, this);
+};
+
+Array.prototype.the = function(acc) {
+    if (acc == "largest") {
+        return {head: "max", complements: []};
+    }
 };
 
 function lt(a, b) {

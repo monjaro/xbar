@@ -91,6 +91,20 @@ Array.prototype.each = function(head, complements) {
 };
 
 Array.prototype.the = function(acc) {
+    function where(qualifier) {
+        return function(func) {
+            return function(old_qualifier) {
+                var new_qualifier = qualifier;
+                if (old_qualifier) {
+                    new_qualifier = function(x) {
+                        return qualifier(x) && old_qualifier(x);
+                    };
+                }
+                return func.call(this, new_qualifier);
+            };
+        };
+    };
+
     function max(opt_qualifier) {
         var largest = -Infinity;
         for (var i = 0; i < this.length; i++) {
@@ -102,13 +116,8 @@ Array.prototype.the = function(acc) {
         }
         return largest;
     };
-    max.having = function(qualifier) {
-        return function(func) {
-            return function() {
-                return func.call(this, qualifier);
-            };
-        };
-    };
+    max.where = where;
+
 
     if (acc == "largest") {
         return {field: max, complements: []};

@@ -1,7 +1,8 @@
+function is_string(s) {
+    return s && (typeof s == "string" || s instanceof String);
+};
+
 function xbar(obj, spec, spec_args, head, complements, adjuncts, adjunct_args) {
-    function is_string(s) {
-        return s && (typeof s == "string" || s instanceof String);
-    };
     if (is_string(spec)) {
         spec = obj[spec];
 
@@ -68,11 +69,20 @@ Array.prototype.map.but_not = function(n) {
 };
 
 Array.prototype.each = function(head, complements) {
+    var func;
+    if (is_string(head)) {
+        func = function(x) {
+            return x[head].apply(x, complements);
+        };
+    } else {
+        func = function(x) {
+            return head.apply(null, [x].concat(complements));
+        };
+    }
+
     return {
         head: "map",
-        complements: [function(x) {
-            return head.apply(null, [x].concat(complements));
-        }]
+        complements: [func]
     };
 };
 

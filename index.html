@@ -17,9 +17,9 @@ function doParse() {
 <body>
 
 <textarea id="input" rows="4" cols="50">
-[1, 2, 3].(each add(2), except(2));
+window.console.log([1, 2, 3].[each: (add)(2), except(2)]);
 
-"abc".(bold());
+window.console.log("abc".[bold()]);
 </textarea>
 
 <button onclick="doParse()">Parse</button>

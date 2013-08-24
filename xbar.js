@@ -11,8 +11,12 @@ function xbar(obj, spec, spec_args, head, complements, adjuncts, adjunct_args) {
         }
     }
 
-    var specd = spec ? spec(head, complements): {head:head,complements:complements};
-    var field = obj[specd.head];
+    spec = spec || function(head, complements) {
+        return {field: obj[head], complements: complements};
+    };
+
+    var specd = spec.call(obj, head, complements);
+    var field = specd.field;
 
     for (var i = 0; i < adjuncts.length; i++) {
         var oldField = field;
@@ -81,18 +85,33 @@ Array.prototype.each = function(head, complements) {
     }
 
     return {
-        head: "map",
+        field: this.map,
         complements: [func]
     };
 };
 
-Array.prototype.max = function() {
-  return Math.max.apply(null, this);
-};
-
 Array.prototype.the = function(acc) {
+    function max(opt_qualifier) {
+        var largest = -Infinity;
+        for (var i = 0; i < this.length; i++) {
+            if (!opt_qualifier || opt_qualifier(this[i])) {
+                if (this[i] > largest) {
+                    largest = this[i];
+                }
+            }
+        }
+        return largest;
+    };
+    max.having = function(qualifier) {
+        return function(func) {
+            return function() {
+                return func.call(this, qualifier);
+            };
+        };
+    };
+
     if (acc == "largest") {
-        return {head: "max", complements: []};
+        return {field: max, complements: []};
     }
 };
 

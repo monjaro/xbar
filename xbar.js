@@ -97,3 +97,13 @@ function by(compFun) {
         };
     };
 };
+
+function first_wait(time) {
+    return function(func) {
+        return function() {
+            var that = this;
+            var args = arguments;
+            window.setTimeout(function() { func.apply(that, args); }, time);
+        };
+    };
+};

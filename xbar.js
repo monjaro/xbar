@@ -90,7 +90,7 @@ function lt(a, b) {
     return a - b;
 };
 
-function by(compFun) {
+Array.prototype.sort.by = function(compFun) {
     return function(func) {
         return function(optCompFun) {
             func.call(this, compFun);

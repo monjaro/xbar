@@ -4,6 +4,9 @@ function is_string(s) {
 
 function xbar(obj, spec, spec_args, head, complements, adjuncts, adjunct_args) {
     if (is_string(spec)) {
+        if (!(spec in obj && obj[spec])) {
+            throw "No such specifier \"" + spec + "\" on " + obj;
+        }
         spec = obj[spec];
 
         if (spec_args) {
@@ -22,6 +25,9 @@ function xbar(obj, spec, spec_args, head, complements, adjuncts, adjunct_args) {
         var oldField = field;
         var adj;
         if (is_string(adjuncts[i])) {
+            if (!(adjuncts[i] in oldField && oldField[adjuncts[i]])) {
+               throw "No such adjunct \"" + adjuncts[i] + "\" on " + oldField;
+            }
             adj = oldField[adjuncts[i]];
 
             if (adjunct_args[i]) {
@@ -205,4 +211,40 @@ function first_wait(time) {
             window.setTimeout(function() { func.apply(that, args); }, time);
         };
     };
+};
+
+function never(head) {
+    function cancel(cond) {
+        var old = this[head];
+        this[head] = function() {
+            if (cond && cond()) {
+                return old.apply(this, arguments);
+            }
+            return undefined;
+        };
+    };
+
+    function removeComplements(f) {
+        f.unless = undefined;
+        f.when = undefined;
+        return f;
+    };
+
+    cancel.unless = function(cond) {
+        return function(func) {
+            return removeComplements(function() {
+                func.call(this, cond);
+            });
+        };
+    };
+
+    cancel.when = function(cond) {
+        return function(func) {
+            return removeComplements(function() {
+                func.call(this, function() { return !cond(); });
+            });
+        };
+    };
+
+    return {field: cancel, complements: []};
 };

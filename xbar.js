@@ -93,34 +93,95 @@ Array.prototype.each = function(head, complements) {
 Array.prototype.the = function(acc) {
     function where(qualifier) {
         return function(func) {
-            return function(old_qualifier) {
+            return function(options) {
                 var new_qualifier = qualifier;
-                if (old_qualifier) {
+                if (options.qualifier) {
                     new_qualifier = function(x) {
-                        return qualifier(x) && old_qualifier(x);
+                        return qualifier(x) && options.qualifier(x);
                     };
                 }
-                return func.call(this, new_qualifier);
+                options.qualifier = new_qualifier;
+                return func.call(this, options);
             };
         };
     };
 
-    function max(opt_qualifier) {
-        var largest = -Infinity;
-        for (var i = 0; i < this.length; i++) {
-            if (!opt_qualifier || opt_qualifier(this[i])) {
-                if (this[i] > largest) {
-                    largest = this[i];
+    function appearing_last(func) {
+        return function(options) {
+            options.last = true;
+            return func.call(this, options);
+        };
+    };
+    function appearing_first(func) {
+        return function(options) {
+            options.last = false;
+            return func.call(this, options);
+        };
+    };
+
+    function testQual(options, item) {
+        return !options.qualifier || options.qualifier(item);
+    }
+
+    var selectors = {
+        largest: function(options) {
+            var largest = -Infinity;
+            for (var i = 0; i < this.length; i++) {
+                if (testQual(options, this[i])) {
+                    if (this[i] > largest) {
+                        largest = this[i];
+                    }
                 }
             }
+            return largest;
+        },
+        smallest: function(options) {
+            var smallest = Infinity;
+            for (var i = 0; i < this.length; i++) {
+                if (testQual(options, this[i])) {
+                    if (this[i] < smallest) {
+                        smallest = this[i];
+                    }
+                }
+            }
+            return smallest;
+        },
+        element: function(options) {
+            if (options.last) {
+                for (var i = this.length - 1; i >= 0; i--) {
+                    if (testQual(options, this[i])) {
+                        return this[i];
+                    }
+                }
+            } else {
+                for (var i = 0; i < this.length; i++) {
+                    if (testQual(options, this[i])) {
+                        return this[i];
+                    }
+                }
+            }
+            return undefined;
+        },
+        average: function(options) {
+            var sum = 0;
+            var count = 0;
+            for (var i = 0; i < this.length; i++) {
+                if (testQual(options, this[i])) {
+                    sum += this[i];
+                    count++;
+                }
+            }
+            return sum / count;
         }
-        return largest;
     };
-    max.where = where;
+    for(var sel in selectors) {
+        selectors[sel].where = where;
+    }
+    selectors.element.appearing_last = appearing_last;
+    selectors.element.appearing_first = appearing_first;
 
-
-    if (acc == "largest") {
-        return {field: max, complements: []};
+    if (is_string(acc)) {
+        return {field: selectors[acc], complements: [{}]};
     }
 };
 

@@ -1,0 +1,64 @@
+var assert = require("assert");
+var xbar = require("../xbar");
+
+suite('Array', function() {
+    suite('#each', function() {
+        function add(a, b) { return a + b; };
+
+        test('basic behaviour', function(){
+            assert.deepEqual([1,2,3].[each: (add)(3)], [4,5,6]);
+            assert.deepEqual(["a","b","c"].[each: toUpperCase()], ["A","B","C"]);
+        });
+
+        test('except', function(){
+            assert.deepEqual([1,2,3].[each: (add)(3), except(2)], [4,6]);
+        });
+
+        test('but_not', function() {
+            assert.deepEqual([1,2,3].[each: (add)(3), but_not(2)], [4,2,6]);
+        });
+
+        test('iterated', function() {
+            assert.deepEqual([1,2,3,4,5,6].[each: (add)(3), except(2), but_not(3), but_not(5), except(1)], [3,7,5,9]);
+        });
+    });
+
+    suite('#the', function() {
+        function ne(x) { return function(y) { return x != y; };};
+        function odd(x) { return x % 2 == 1; };
+        test('element', function(){
+            assert.equal([1,2,3].[the: element], 1);
+            assert.equal([1,2,3].[the: element, where(ne(1))], 2);
+            assert.equal([1,2,3].[the: element, where(ne(1)), where(ne(2))], 3);
+            assert.equal([1,2,3,4,5,6].[the: element, where(odd), appearing_first], 1);
+            assert.equal([1,2,3,4,5,6].[the: element, where(odd), appearing_last], 5);
+        });
+        test('largest', function(){
+            assert.equal([1,2,3].[the: largest], 3);
+            assert.equal([1,2,3,4,5,6].[the: largest, where(odd)], 5);
+            assert.equal([1,2,3,4,5,6].[the: largest, where(odd), where(ne(5))], 3);
+        });
+        test('smallest', function(){
+            assert.equal([1,2,3].[the: smallest], 1);
+            assert.equal([2,3,4,5,6].[the: smallest, where(odd)], 3);
+            assert.equal([2,3,4,5,6].[the: smallest, where(odd), where(ne(3))], 5);
+        });
+        test('average', function(){
+            assert.equal([1,2,3].[the: average], 2);
+            assert.equal([2,3,4,5,6].[the: average, where(odd)], 4);
+            assert.equal([2,3,4,5,6,7].[the: average, where(odd), where(ne(3))], 6);
+        });
+    });
+
+    suite('#sort', function() {
+        function asc(a,b) { return a-b;};
+        function desc(a,b) { return b-a;};
+        test('by', function(){
+            var a = [3, 5, 1];
+            a.[sort(), by(asc)];
+            assert.deepEqual(a, [1,3,5]);
+            a.[sort(), by(desc)];
+            assert.deepEqual(a, [5,3,1]);
+        });
+    });
+});

@@ -205,17 +205,17 @@ Array.prototype.sort.__adjuncts = {
     }
 };
 
-function first_wait(time) {
+xbar.first_wait = function(time) {
     return function(func) {
         return function() {
             var that = this;
             var args = arguments;
-            window.setTimeout(function() { func.apply(that, args); }, time);
+            setTimeout(function() { func.apply(that, args); }, time);
         };
     };
 };
 
-function never(head) {
+xbar.never = function(head) {
     function cancel(cond) {
         var old = this[head];
         this[head] = function() {
@@ -249,4 +249,60 @@ function never(head) {
     };
 
     return {field: cancel, complements: []};
+};
+
+xbar.every = function(head) {
+    var that = this;
+
+    function transform(f, time, cond, cancel_cond) {
+        return function() {
+            var args = arguments;
+            var id = setInterval(function() {
+                if (cancel_cond()) {
+                    clearInterval(id);
+                    return;
+                }
+                if (cond()) {
+                    f.apply(that, args);
+                }
+            }, time);
+        };
+    };
+
+    function create(timeout, cond, cancel_cond) {
+        var obj = Object.create(that);
+
+        for (var field in obj) {
+            obj[field] = transform(obj[field], timeout, cond, cancel_cond);
+        }
+        return obj;
+    };
+
+    create.__adjuncts = {
+        except_if: function(cond) {
+            return function(func) {
+                return function(timeout, old_cond, cancel_cond) {
+                    return func.call(this, timeout, function() {
+                        return cond() && old_cond();
+                    }, cancel_cond);
+                };
+            };
+        },
+        cancel_if: function(cancel_cond) {
+            return function(func) {
+                return function(timeout, cond, old_cancel_cond) {
+                    return func.call(this, timeout, cond, function() {
+                        return cancel_cond() && old_cancel_cond();
+                    });
+                };
+            };
+        }
+    };
+
+    function t() { return true; };
+    return {field: create, complements: [head, t, t]};
+};
+
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+    module.exports = xbar;
 };

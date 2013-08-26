@@ -103,14 +103,17 @@ suite('never', function() {
 
     test('unless', function() {
         var a = make();
+
         a.[xbar.never: incr, unless(en)];
 
         enabled = false;
         a.incr();
         assert.equal(a.x, 0);
+
         enabled = true;
         a.incr();
         assert.equal(a.x, 1);
+
         enabled = false;
         a.incr();
         assert.equal(a.x, 1);
@@ -120,12 +123,15 @@ suite('never', function() {
         var a = make();
 
         a.[xbar.never: incr, when(en)];
+
         enabled = false;
         a.incr();
         assert.equal(a.x, 1);
+
         enabled = true;
         a.incr();
         assert.equal(a.x, 1);
+
         enabled = false;
         a.incr();
         assert.equal(a.x, 2);
